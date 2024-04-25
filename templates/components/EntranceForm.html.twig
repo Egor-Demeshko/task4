@@ -1,0 +1,18 @@
+<div class="entrance_form__wrapper position-absolute top-50 start-50 translate-middle">
+    <div class="p-4 ps-4 rounded-2 bg-info
+    entrance_form {{hide}} d-flex flex-column" >
+        <h3 class="m-0">{{title}}</h3>
+        {% if type == 'login' %}
+            {{ form_start(login, {'attr': {'class': 'form_wrapper'}}) }}
+            {{ form_widget(login, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+            {{ form_end(login) }}
+        {% else %}
+            {{ form_start(register, {'attr': {'class': 'form_wrapper'}}) }}
+            {{ form_widget(register, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+            {{ form_end(register) }}
+        {% endif %}
+        <div class="d-flex align-items-center justify-content-end">
+            <span data-goto="register">No accont? Sign up</span>
+        </div>
+    </div>
+</div>

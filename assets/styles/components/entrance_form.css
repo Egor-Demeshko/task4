@@ -1,0 +1,36 @@
+.entrance_form__wrapper {
+    padding: 0 1rem;
+}
+
+.entrance_form {
+    opacity: 1;
+    max-width: 640px;
+    transition: opacity 0.4s;
+    margin: 0 auto;
+}
+
+.entrance_form.hide {
+    opacity: 0;
+}
+
+.form__line {
+    display: flex;
+    gap: 0.4rem;
+    flex-direction: column;
+    align-items: start;
+}
+
+.form__label {
+    font-size: 1.125rem;
+}
+
+@media screen and (max-width: 640px) {
+    .entrance_form__wrapper {
+        width: 100%;
+    }
+
+    .entrance_form {
+        box-sizing: border-box;
+        margin: 0;
+    }
+}

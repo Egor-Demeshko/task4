@@ -25,4 +25,20 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'svelte/internal' => [
+        'version' => '3.59.2',
+    ],
+    '@symfony/ux-svelte' => [
+        'path' => './vendor/symfony/ux-svelte/assets/dist/loader.js',
+    ],
+    'bootstrap' => [
+        'version' => '5.3.3',
+    ],
+    '@popperjs/core' => [
+        'version' => '2.11.8',
+    ],
+    'bootstrap/dist/css/bootstrap.min.css' => [
+        'version' => '5.3.3',
+        'type' => 'css',
+    ],
 ];
