@@ -6,42 +6,118 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Form\LoginType;
 use App\Form\RegistrationType;
-use App\Entity\User;
-use App\Entity\UserDetails;
+use App\Controller\Utils\FormUtils;
+use App\Entity\Registration;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormInterface;
 
 class MainController extends AbstractController
 {
-    #[Route('/', name: 'main')]
-    public function index(Request $request): Response
-    {
-        $session = $request->getSession();
+    private array $formsOptions = [
+        /* [
+            'type' => FormUtils::LOGIN,
+            'className' => LoginType::class,
+            'orm' => User::class,
+            'redirectTo' => 'users'
+        ],*/
+        [
+            'type' => FormUtils::REGISTRATION,
+            'className' => RegistrationType::class,
+            'orm' => Registration::class,
+            'redirectTo' => 'success'
+        ]
+    ];
+    private Request $request;
+    private EntityManagerInterface $entityManager;
+    private FormUtils $formsUtil;
+    private string $sumbmittedRoute = '';
 
-        return $this->checkSession($session->has("name"));
+
+    #[Route('/', name: 'main')]
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->request = $request;
+        $this->entityManager = $entityManager;
+        $session = $request->getSession();
+        return $this->redirectOnSession($session->has("name"));
     }
 
-    private function checkSession(bool $name): Response
+    private function redirectOnSession(bool $name): Response
     {
         if ($name) {
             return $this->redirectToRoute('users');
         } else {
-            return $this->renderMain();
+            return $this->processThisController();
         }
     }
 
-    private function renderMain()
+    private function processThisController(): Response
     {
-        $user = new User();
-        $registration = new UserDetails();
+        $this->processForms();
 
-        $login = $this->createForm(LoginType::class, $user);
-        $register = $this->createForm(RegistrationType::class, $registration);
+        if ($this->request->isMethod('POST')) {
+            $submittedRoute = $this->defineSubmittedFormName();
+            $this->formsUtil->setSubmittedRoute($submittedRoute);
+        }
+        return $this->chooseRender();
+    }
+
+    private function processForms(): void
+    {
+        $this->formsUtil = new FormUtils($this->formsOptions, $this);
+    }
+
+    private function chooseRender(): Response
+    {
+        if ($this->request->isMethod('POST')) {
+            return $this->processRedirect();
+        }
 
         return $this->render('main/index.html.twig', [
             'controller_name' => 'MainController',
-            'login' => $login,
-            'register' => $register
+            // FormUtils::LOGIN => $this->formsUtil->getForms()[FormUtils::LOGIN]['form'],
+            FormUtils::REGISTRATION => $this->formsUtil->getForms()[FormUtils::REGISTRATION]['form']
         ]);
+    }
+
+    private function defineSubmittedFormName(): string
+    {
+        if (isset($this->request)) {
+            $formArray = $this->request->request->all();
+            foreach ($formArray as $formName => $_) {
+                $this->sumbmittedRoute = $formName;
+                return $formName;
+            }
+        }
+    }
+
+    private function processRedirect(): Response
+    {
+        if ($this->sumbmittedRoute === FormUtils::REGISTRATION) {
+            $this->formsUtil->setRegistrationDataFromRequest();
+
+            if ($this->formsUtil->isSubmittedAndValid()) {
+                $orm = $this->formsUtil->getOrm(FormUtils::REGISTRATION);
+                $this->entityManager->persist($orm);
+                $this->entityManager->flush();
+                return $this->formsUtil->redirect($this);
+            }
+        }
+    }
+
+    public function getNewForm(string $className, mixed $orm): FormInterface
+    {
+        return $this->createForm($className, $orm);
+    }
+
+    public function goto(string $route): Response
+    {
+        return $this->redirectToRoute($route);
+    }
+
+    public function getRequest()
+    {
+        return $this->request;
     }
 }

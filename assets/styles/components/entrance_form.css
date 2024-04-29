@@ -1,10 +1,10 @@
 .entrance_form__wrapper {
-    padding: 0 1rem;
+    width: clamp(290px, 33vw, 640px);
 }
 
 .entrance_form {
     opacity: 1;
-    max-width: 640px;
+    max-width: 100%;
     transition: opacity 0.4s;
     margin: 0 auto;
 }
@@ -24,9 +24,15 @@
     font-size: 1.125rem;
 }
 
+.entrance_form__change_view {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
 @media screen and (max-width: 640px) {
     .entrance_form__wrapper {
         width: 100%;
+        padding: 0 1rem;
     }
 
     .entrance_form {

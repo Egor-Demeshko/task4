@@ -1,17 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello MainController!{% endblock %}
+{% block title %}Hello MainController!
+{% endblock %}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{asset('styles/main/main.css')}}">
-    <link rel="stylesheet" href="{{asset('styles/components/entrance_form.css')}}">
+	<link rel="stylesheet" href="{{asset('styles/main/main.css')}}">
+	<link rel="stylesheet" href="{{asset('styles/components/entrance_form.css')}}">
 {% endblock %}
 
 {% block body %}
 
-    <twig:EntranceForm type="login" title="Login to your account">
-    </twig:EntranceForm>
-
-    <twig:EntranceForm type="registration" title="Register" hide="hide">
-    </twig:EntranceForm>
+	{# <twig:EntranceForm type="login" title="Login to your account" hide="hide"> #}
+	{# </twig:EntranceForm> #}<twig:EntranceForm type="registr" title="Register"> </twig:EntranceForm>
 
 {% endblock %}

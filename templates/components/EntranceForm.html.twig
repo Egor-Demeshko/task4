@@ -4,15 +4,21 @@
         <h3 class="m-0">{{title}}</h3>
         {% if type == 'login' %}
             {{ form_start(login, {'attr': {'class': 'form_wrapper'}}) }}
+            {{ form_errors(login) }}
             {{ form_widget(login, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
             {{ form_end(login) }}
+            <div class="d-flex align-items-center justify-content-end mt-3">
+                <span class="entrance_form__change_view" data-goto="registration">No accont? Sign up!</span>
+            </div>
         {% else %}
-            {{ form_start(register, {'attr': {'class': 'form_wrapper'}}) }}
-            {{ form_widget(register, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
-            {{ form_end(register) }}
+            {{ form_start(registration, {'attr': {'class': 'form_wrapper'}}) }}
+            {{ form_errors(registration) }}
+            {{ form_widget(registration, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+            {{ form_end(registration) }}
+            <div class="d-flex align-items-center justify-content-end mt-3">
+                <span class="entrance_form__change_view" data-goto="login">Do you have account? Sign in!</span>
+            </div>
         {% endif %}
-        <div class="d-flex align-items-center justify-content-end">
-            <span data-goto="register">No accont? Sign up</span>
-        </div>
+
     </div>
 </div>

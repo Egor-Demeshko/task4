@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\UniqueConstraint;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -17,10 +18,19 @@ class User
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotNull(message: "Email value should not be empty.")]
+    #[Assert\Email]
+    #[Assert\Type(type: 'string')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotNull(message: "Password value should not be empty.")]
+    #[Assert\Type(type: 'string')]
     private ?string $password = null;
+
+    // #[Assert\Type(type: User::class)]
+    // #[Assert\Valid]
+    // protected ?User $user = null;
 
     public function getId(): ?int
     {
@@ -57,4 +67,15 @@ class User
 
         return $this;
     }
+
+    //     public function setUser(?User $user): static
+    //     {
+    //         $this->user = $user;
+    //         return $this;
+    //     }
+
+    //     public function getUser(): ?User
+    //     {
+    //         return $this->user;
+    //     }
 }

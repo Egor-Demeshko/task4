@@ -16,22 +16,31 @@ class UserDetails
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank]
+    #[Assert\NotNull(message: "Name should not be empty.")]
     private ?string $name = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Registration time should not be empty.")]
+    #[Assert\NotBlank]
     private ?\DateTimeImmutable $registrated_at = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $last_logined_at = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotNull(message: "The status should not be empty.")]
+    #[Assert\NotBlank]
     private ?string $status = null;
 
-    #[Assert\Type(type: User::class)]
-    #[Assert\Valid]
     #[ORM\OneToOne(targetEntity: "User", cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: "id", nullable: false)]
     private ?User $user_id = null;
+
+    #[Assert\Type(type: User::class)]
+    #[Assert\Valid]
+    protected ?User $user = null;
 
     public function getId(): ?int
     {
@@ -103,5 +112,15 @@ class UserDetails
         $this->user_id = $user_id;
 
         return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): void
+    {
+        $this->user = $user;
     }
 }
