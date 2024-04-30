@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
@@ -18,6 +19,7 @@ class User
     #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotNull(message: "Email value should not be empty.")]
     #[Assert\Email]
+    #[Assert\Regex('/[a-z0-9._%+-]+@[a-z0-9.-]+?[.]{1}[a-z]{2,}$/', message: "Email should be like: exp@exp.by")]
     #[Assert\Type(type: 'string')]
     private ?string $email = null;
 
@@ -73,5 +75,10 @@ class User
     public function getUserDetails(): ?UserDetails
     {
         return $this->user_details;
+    }
+
+    public function validate(string $email, ExecutionContextInterface $context, mixed $payload): void
+    {
+        $context;
     }
 }
