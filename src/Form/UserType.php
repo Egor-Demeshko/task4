@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use App\Controller\Utils\FormUtils;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
@@ -44,7 +45,11 @@ class UserType extends AbstractType
                         'second_options' => ['label' => 'Repeat Password'],
                     ]);
                 } else {
-                    $form->add('password', PasswordType::class, self::STYLES);
+                    $form->add('password', PasswordType::class, self::STYLES)
+                        ->add('submit', SubmitType::class, [
+                            'attr' => ['class' => 'btn btn-primary'],
+                            'label' => 'Register'
+                        ]);
                 }
             });
     }
@@ -53,6 +58,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'trim' => true
         ]);
     }
 }

@@ -4,12 +4,10 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\UniqueConstraint;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
-#[UniqueConstraint(columns: ['password'])]
+#[ORM\Table(name: 'user')]
 class User
 {
     #[ORM\Id]
@@ -17,20 +15,19 @@ class User
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotNull(message: "Email value should not be empty.")]
     #[Assert\Email]
     #[Assert\Type(type: 'string')]
     private ?string $email = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: false)]
     #[Assert\NotNull(message: "Password value should not be empty.")]
     #[Assert\Type(type: 'string')]
     private ?string $password = null;
 
-    // #[Assert\Type(type: User::class)]
-    // #[Assert\Valid]
-    // protected ?User $user = null;
+    #[ORM\OneToOne(targetEntity: UserDetails::class, mappedBy: 'user')]
+    protected ?UserDetails $user_details = null;
 
     public function getId(): ?int
     {
@@ -68,14 +65,13 @@ class User
         return $this;
     }
 
-    //     public function setUser(?User $user): static
-    //     {
-    //         $this->user = $user;
-    //         return $this;
-    //     }
+    public function setUserDetails(?UserDetails $details)
+    {
+        $this->user_details = $details;
+    }
 
-    //     public function getUser(): ?User
-    //     {
-    //         return $this->user;
-    //     }
+    public function getUserDetails(): ?UserDetails
+    {
+        return $this->user_details;
+    }
 }

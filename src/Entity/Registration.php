@@ -8,7 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\UserDetails;
 
 // #[ORM\Entity(repositoryClass: RegistrationRepository::class)]
-// #[ORM\MappedSuperclass]
+#[ORM\MappedSuperclass]
+#[Assert\DisableAutoMapping]
 class Registration
 {
     // #[ORM\Id]
@@ -16,8 +17,8 @@ class Registration
     // #[ORM\Column]
     // private ?int $id = null;
 
-    #[Assert\Type(type: UserDetails::class)]
-    #[Assert\Valid]
+    // #[Assert\Type(type: UserDetails::class)]
+    // #[Assert\Valid]
     protected ?UserDetails $details = null;
     public function setDetails(UserDetails $details): void
     {

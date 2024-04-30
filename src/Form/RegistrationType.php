@@ -20,10 +20,6 @@ class RegistrationType extends AbstractType
                 'label' => false,
                 'attr' => ['class' => 'd-flex flex-column gap-3'],
                 'data_class' => UserDetails::class
-            ])
-            ->add('submit', SubmitType::class, [
-                'attr' => ['class' => 'btn btn-primary'],
-                'label' => 'Register'
             ]);
     }
 

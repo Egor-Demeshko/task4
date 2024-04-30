@@ -26,7 +26,7 @@ class UserDetails
     #[Assert\NotBlank]
     private ?\DateTimeImmutable $registrated_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $last_logined_at = null;
 
     #[ORM\Column(length: 20)]
@@ -34,12 +34,11 @@ class UserDetails
     #[Assert\NotBlank]
     private ?string $status = null;
 
-    #[ORM\OneToOne(targetEntity: "User", cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: "id", nullable: false)]
-    private ?User $user_id = null;
+    #[ORM\Column]
+    private ?int $user_id = null;
 
-    #[Assert\Type(type: User::class)]
-    #[Assert\Valid]
+    #[ORM\OneToOne(targetEntity: User::class, cascade: ['persist'], inversedBy: 'user_details')]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: "id", nullable: false)]
     protected ?User $user = null;
 
     public function getId(): ?int
