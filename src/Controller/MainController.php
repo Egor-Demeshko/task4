@@ -115,7 +115,7 @@ class MainController extends AbstractController
             }
         }
 
-        $this->renderMain();
+        return $this->renderMain();
     }
 
     public function getNewForm(string $className, mixed $orm): FormInterface
