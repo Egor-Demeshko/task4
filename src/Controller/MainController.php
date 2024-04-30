@@ -9,6 +9,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Form\RegistrationType;
 use App\Controller\Utils\FormUtils;
 use App\Entity\Registration;
+use App\Entity\User;
+use App\Entity\UserDetails;
+use App\Form\UserDetailsType;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 
@@ -23,8 +27,8 @@ class MainController extends AbstractController
         ],*/
         [
             'type' => FormUtils::REGISTRATION,
-            'className' => RegistrationType::class,
-            'orm' => Registration::class,
+            'className' => UserDetailsType::class,
+            'orm' => UserDetails::class,
             'redirectTo' => 'success'
         ]
     ];
@@ -71,14 +75,10 @@ class MainController extends AbstractController
     private function chooseRender(): Response
     {
         if ($this->request->isMethod('POST')) {
-            return $this->processRedirect();
+            return $this->processPOST();
         }
 
-        return $this->render('main/index.html.twig', [
-            'controller_name' => 'MainController',
-            // FormUtils::LOGIN => $this->formsUtil->getForms()[FormUtils::LOGIN]['form'],
-            FormUtils::REGISTRATION => $this->formsUtil->getForms()[FormUtils::REGISTRATION]['form']
-        ]);
+        return $this->renderMain();
     }
 
     private function defineSubmittedFormName(): string
@@ -92,18 +92,30 @@ class MainController extends AbstractController
         }
     }
 
-    private function processRedirect(): Response
+    private function renderMain(): Response
+    {
+        return $this->render('main/index.html.twig', [
+            'controller_name' => 'MainController',
+            // FormUtils::LOGIN => $this->formsUtil->getForms()[FormUtils::LOGIN]['form'],
+            FormUtils::REGISTRATION => $this->formsUtil->getForms()[FormUtils::REGISTRATION]['form']
+        ]);
+    }
+
+    private function processPOST(): Response
     {
         if ($this->sumbmittedRoute === FormUtils::REGISTRATION) {
             $this->formsUtil->setRegistrationDataFromRequest();
 
             if ($this->formsUtil->isSubmittedAndValid()) {
                 $orm = $this->formsUtil->getOrm(FormUtils::REGISTRATION);
+
                 $this->entityManager->persist($orm);
                 $this->entityManager->flush();
                 return $this->formsUtil->redirect($this);
             }
         }
+
+        $this->renderMain();
     }
 
     public function getNewForm(string $className, mixed $orm): FormInterface

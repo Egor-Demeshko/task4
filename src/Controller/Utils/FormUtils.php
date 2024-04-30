@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Utils;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\Form\Test\FormInterface;
@@ -15,14 +16,13 @@ class FormUtils
     private array $forms = [];
     private array $orms = [];
     const LOGIN = "login";
-    const REGISTRATION = "registration";
+    const REGISTRATION = "user_details";
 
     private ?Request $request = null;
     private ?string $sumbmittedRoute = null;
 
     public function __construct(array $formsOption, AbstractController $controller)
     {
-        $forms = [];
 
         if ($controller->getRequest()) {
             $this->request = $controller->getRequest();
@@ -38,14 +38,12 @@ class FormUtils
 
             $this->orms[$type] = new $orm();
 
-            $forms[$type]['form'] = $controller->getNewForm(
+            $this->forms[$type]['form'] = $controller->getNewForm(
                 $className,
                 $this->orms[$type]
             );
-            $forms[$type]['redirectTo'] = $redirectTo;
+            $this->forms[$type]['redirectTo'] = $redirectTo;
         }
-
-        $this->forms = $forms;
     }
 
     public function isSubmittedAndValid(): bool
@@ -69,7 +67,7 @@ class FormUtils
         $orm = $this->orms[$formName] ?? null;
 
         if (isset($form)) {
-            $form->handleRequest($this->request);
+            $this->forms[$formName]['form'] = $form->handleRequest($this->request);
         }
     }
 

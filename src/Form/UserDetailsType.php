@@ -11,6 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use DateTimeImmutable;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Traversable;
 
 class UserDetailsType extends AbstractType implements DataMapperInterface
@@ -27,6 +28,10 @@ class UserDetailsType extends AbstractType implements DataMapperInterface
                 'label' => false,
                 'attr' => ['class' => 'd-flex flex-column gap-3'],
                 'data_class' => User::class,
+            ])
+            ->add('submit', SubmitType::class, [
+                'attr' => ['class' => 'btn btn-primary'],
+                'label' => 'Register'
             ])
             ->setDataMapper($this);
     }
@@ -55,6 +60,8 @@ class UserDetailsType extends AbstractType implements DataMapperInterface
     public function mapFormsToData(Traversable $forms, mixed &$viewData)
     {
         $forms = iterator_to_array($forms);
+
+        $viewData->setUser($forms['user']->getData());
 
         $viewData->setName($forms[self::NAME]->getData());
         $dateTimeImmutable = new DateTimeImmutable(\date('Y-m-d H:i:s'));

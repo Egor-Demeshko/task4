@@ -1,24 +1,24 @@
 <div class="entrance_form__wrapper position-absolute top-50 start-50 translate-middle">
-    <div class="p-4 ps-4 rounded-2 bg-info
-    entrance_form {{hide}} d-flex flex-column" >
-        <h3 class="m-0">{{title}}</h3>
-        {% if type == 'login' %}
-            {{ form_start(login, {'attr': {'class': 'form_wrapper'}}) }}
-            {{ form_errors(login) }}
-            {{ form_widget(login, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
-            {{ form_end(login) }}
-            <div class="d-flex align-items-center justify-content-end mt-3">
-                <span class="entrance_form__change_view" data-goto="registration">No accont? Sign up!</span>
-            </div>
-        {% else %}
-            {{ form_start(registration, {'attr': {'class': 'form_wrapper'}}) }}
-            {{ form_errors(registration) }}
-            {{ form_widget(registration, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
-            {{ form_end(registration) }}
-            <div class="d-flex align-items-center justify-content-end mt-3">
-                <span class="entrance_form__change_view" data-goto="login">Do you have account? Sign in!</span>
-            </div>
-        {% endif %}
+	<div class="p-4 ps-4 rounded-2 bg-info
+						    entrance_form {{hide}} d-flex flex-column">
+		<h3 class="m-0">{{title}}</h3>
+		{% if type == 'login' %}
+			{{ form_start(login, {'attr': {'class': 'form_wrapper'}}) }}
+			{{ form_errors(login) }}
+			{{ form_widget(login, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+			{{ form_end(login) }}
+			<div class="d-flex align-items-center justify-content-end mt-3">
+				<span class="entrance_form__change_view" data-goto="registration">No accont? Sign up!</span>
+			</div>
+		{% else %}
+			{{ form_start(user_details, {'attr': {'class': 'form_wrapper'}}) }}
+			{{ form_errors(user_details) }}
+			{{ form_widget(user_details, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+			{{ form_end(user_details) }}
+			<div class="d-flex align-items-center justify-content-end mt-3">
+				<span class="entrance_form__change_view" data-goto="login">Do you have account? Sign in!</span>
+			</div>
+		{% endif %}
 
-    </div>
+	</div>
 </div>
