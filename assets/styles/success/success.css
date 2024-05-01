@@ -1,0 +1,25 @@
+.success_message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bs-success);
+    color: var(--bs-white);
+}
+
+.success_message__paragraph {
+    font-size: 1.125rem;
+}
+
+.success_message__title {
+    font-size: 2rem;
+}
+
+.success_message__link {
+    font-size: bold;
+    color: var(--bs-dark);
+}
+
+.success_message--accent {
+    font-weight: bold;
+}

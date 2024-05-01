@@ -123,9 +123,9 @@ class MainController extends AbstractController
         return $this->createForm($className, $orm);
     }
 
-    public function goto(string $route): Response
+    public function goto(string $route, array $params = []): Response
     {
-        return $this->redirectToRoute($route);
+        return $this->redirectToRoute($route, $params);
     }
 
     public function getRequest()

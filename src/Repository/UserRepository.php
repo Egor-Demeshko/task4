@@ -21,6 +21,25 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+
+    public function isEmailUnique($email): bool
+    {
+        //build query request
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->select('u.email')
+            ->where('u.email = :email')
+            ->setParameter('email', $email);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->setMaxResults(1)->getOneOrNullResult();
+
+        if (isset($result['email'])) {
+            true;
+        }
+
+        return false;
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */

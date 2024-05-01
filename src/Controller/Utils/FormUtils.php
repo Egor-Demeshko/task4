@@ -75,7 +75,11 @@ class FormUtils
     {
         foreach ($this->forms as $formData) {
             if ($formData['canRedirect']) {
-                return $controller->goto($formData['redirectTo']);
+                $param = [];
+                if ($formData['form']?->getName() === 'user_details') {
+                    $param['email'] = $this->orms['user_details']->getUser()->getEmail();
+                }
+                return $controller->goto($formData['redirectTo'], $param);
             }
         }
     }

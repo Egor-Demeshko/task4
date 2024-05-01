@@ -39,6 +39,7 @@ class UserDetails
 
     #[ORM\OneToOne(targetEntity: User::class, cascade: ['persist'], inversedBy: 'user_details')]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: "id", nullable: false)]
+    #[Assert\Valid]
     protected ?User $user = null;
 
     public function getId(): ?int

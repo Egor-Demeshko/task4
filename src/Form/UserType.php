@@ -25,7 +25,10 @@ class UserType extends AbstractType
     {
 
         $builder
-            ->add('email', EmailType::class, self::STYLES)
+            ->add('email', EmailType::class, [
+                'required' => false,
+                ...self::STYLES
+            ])
             ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
                 $form = $event->getForm();
                 /** @var bool */
