@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{asset('styles/components/entrance_form.css')}}">
+	<link rel="stylesheet" href="{{asset('styles/success/success.css')}}">
+{% endblock %}
+
+{% block title %}Success! Account was created!
+{% endblock %}
+{% block description %}
+	<meta name="description" content="It was successful!">
+{% endblock %}
+
+{% block body %}
+	<div class="entrance_form__wrapper success_message rounded-4 d-flex p-4 flex-column gap-4">
+		<h1 class="success_message__title m-0 text-center">🙌Congratulation🙌</h1>
+		<div>
+			<p class='m-0 mb-2 success_message__paragraph'>Account for email:
+				<span class="success_message--accent">{{email}}</span>
+			</p>
+			<p class='m-0 mb-2 success_message__paragraph'>
+				Successfully created!
+			</p>
+			<p class='m-0 success_message__paragraph'>
+				Do you want
+				<a class="success_message__link " href="{{ path('main') }}">to login</a>?
+			</p>
+		</div>
+		<p class="success_message__paragraph">
+			Autoredirecting in
+			<span id="counter" class="success_message__autoredirect"></span>
+			seconds
+		</p>
+	</div>
+{% endblock %}

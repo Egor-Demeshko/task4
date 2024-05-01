@@ -5,9 +5,12 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Validator as CustomConstrains;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[UniqueEntity('email', message: 'Account with such email is already created. Try another one.')]
 #[ORM\Table(name: 'user')]
 class User
 {
@@ -19,8 +22,8 @@ class User
     #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotNull(message: "Email value should not be empty.")]
     #[Assert\Email]
-    #[Assert\Regex('/[a-z0-9._%+-]+@[a-z0-9.-]+?[.]{1}[a-z]{2,}$/', message: "Email should be like: exp@exp.by")]
     #[Assert\Type(type: 'string')]
+    # #[CustomConstrains\UserEmail()]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, unique: false)]
@@ -77,8 +80,9 @@ class User
         return $this->user_details;
     }
 
-    public function validate(string $email, ExecutionContextInterface $context, mixed $payload): void
-    {
-        $context;
-    }
+    // #[Assert\Callback]
+    // public function validate(ExecutionContextInterface $context, mixed $payload): void
+    // {
+    //     $context;
+    // }
 }

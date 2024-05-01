@@ -23,7 +23,7 @@ class UserDetailsType extends AbstractType //implements DataMapperInterface
         $builder
             ->add(self::NAME, TextType::class, [
                 'data_class' => UserDetails::class,
-                ...UserType::STYLES
+                ...UserType::STYLES,
             ])
             ->add('user', UserType::class, [
                 'label' => false,
