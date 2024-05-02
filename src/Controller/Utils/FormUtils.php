@@ -15,7 +15,7 @@ class FormUtils
 {
     private array $forms = [];
     private array $orms = [];
-    const LOGIN = "login";
+    const LOGIN = "user";
     const REGISTRATION = "user_details";
 
     private ?Request $request = null;
@@ -60,11 +60,10 @@ class FormUtils
     }
 
 
-    public function setRegistrationDataFromRequest()
+    public function setDataFromRequest()
     {
         $formName = $this->sumbmittedRoute;
         $form = $this->forms[$formName]['form'] ?? null;
-        $orm = $this->orms[$formName] ?? null;
 
         if (isset($form)) {
             $this->forms[$formName]['form'] = $form->handleRequest($this->request);
@@ -74,7 +73,7 @@ class FormUtils
     public function redirect(AbstractController $controller): Response
     {
         foreach ($this->forms as $formData) {
-            if ($formData['canRedirect']) {
+            if (isset($formData['canRedirect']) && $formData['canRedirect']) {
                 $param = [];
                 if ($formData['form']?->getName() === 'user_details') {
                     $param['email'] = $this->orms['user_details']->getUser()->getEmail();
