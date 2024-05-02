@@ -51,9 +51,14 @@ class UserType extends AbstractType
                     $form->add('password', PasswordType::class, self::STYLES)
                         ->add('submit', SubmitType::class, [
                             'attr' => ['class' => 'btn btn-primary'],
-                            'label' => 'Register'
+                            'label' => 'Login'
                         ]);
                 }
+            })
+            ->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
+                $obj = $event->getData();
+
+                $obj->setRoles(['ROLE_USER']);
             });
     }
 

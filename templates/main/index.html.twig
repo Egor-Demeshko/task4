@@ -6,10 +6,15 @@
 	<link rel="stylesheet" href="{{asset('styles/main/main.css')}}">
 	<link rel="stylesheet" href="{{asset('styles/components/entrance_form.css')}}">
 {% endblock %}
+{% block javascripts %}
+	{% block importmap %}
+		{{ importmap('main') }}
+	{% endblock %}
+{% endblock %}
 
 {% block body %}
 
-	{# <twig:EntranceForm type="login" title="Login to your account" hide="hide"> #}
-	{# </twig:EntranceForm> #}<twig:EntranceForm type="registr" title="Register"> </twig:EntranceForm>
+	<twig:EntranceForm type="login" title="Login to your account"></twig:EntranceForm>
+	<twig:EntranceForm type="registration" title="Register" hide="hide"></twig:EntranceForm>
 
 {% endblock %}

@@ -40,6 +40,20 @@ class UserRepository extends ServiceEntityRepository
         return false;
     }
 
+
+    public function getUserByEmail(string $email): mixed
+    {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->select('u')
+            ->where('u.email = :email')
+            ->setParameter('email', $email);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->setMaxResults(1)->getOneOrNullResult();
+        return $result;
+    }
+
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */
