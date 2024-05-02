@@ -2,16 +2,29 @@
 	<div class="p-4 ps-4 rounded-2 bg-info entrance_form  d-flex flex-column">
 		<h3 class="m-0">{{title}}</h3>
 		{% if type == 'login' %}
-			{{ form_start(user, {'attr': {'class': 'form_wrapper', 'data-form': 'login'}}) }}
+			{{ form_start(user, {'attr': {'class': 'form_wrapper'}}) }}
 			{{ form_errors(user) }}
-			<div class="flex-column d-flex gap-3 mt-3"></div>
-			{{ form_widget(user, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
+			<div class="flex-column d-flex gap-3 mt-3">
+
+				<div class="form__line">
+					<label for="username" class="form__label">Email:</label>
+					<input type="text" id="username" name="_username" class="form-control">
+				</div>
+				<div class="form__line">
+					<label for="password" class="form__label">Password:</label>
+					<input type="password" id="password" name="_password" class="form-control">
+				</div>
+				<div class="form__line">
+					<button class="btn btn-primary" type="submit">Login</button>
+				</div>
+
+			</div>
 			{{ form_end(user) }}
 			<div class="d-flex align-items-center justify-content-end mt-3">
 				<span class="entrance_form__change_view" data-goto="login">No accont? Sign up!</span>
 			</div>
 		{% else %}
-			{{ form_start(user_details, {'attr': {'class': 'form_wrapper', 'data-form': 'registration'}}) }}
+			{{ form_start(user_details, {'attr': {'class': 'form_wrapper' }}) }}
 			{{ form_errors(user_details) }}
 			{{ form_widget(user_details, {'attr': {'class': 'd-flex flex-column gap-3 mt-3'}}) }}
 			{{ form_end(user_details) }}

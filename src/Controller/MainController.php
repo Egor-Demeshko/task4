@@ -55,17 +55,8 @@ class MainController extends AbstractController
         $this->passwordUtil = $passwordUtil;
         $this->security = $security;
         $this->userRep = $userRep;
-        $session = $request->getSession();
-        return $this->redirectOnSession($session->has("name"));
-    }
 
-    private function redirectOnSession(bool $name): Response
-    {
-        if ($name) {
-            return $this->redirectToRoute('users');
-        } else {
-            return $this->processThisController();
-        }
+        return $this->processThisController();;
     }
 
     private function processThisController(): Response
@@ -151,18 +142,18 @@ class MainController extends AbstractController
             //TODO create SESSION
             $this->formsUtil->setDataFromRequest();
 
-            $user = $this->formsUtil->getOrm(FormUtils::LOGIN);
+            // $user = $this->formsUtil->getOrm(FormUtils::LOGIN);
 
-            $email = $user->getEmail();
+            // $email = $user->getEmail();
 
-            $userFromBD = $this->userRep->getUserByEmail($email);
+            // $userFromBD = $this->userRep->getUserByEmail($email);
 
-            $password = $user->getPassword();
-            //check where password is valid
-            $isPassValid = $this->passwordUtil->isPasswordValid($userFromBD, $password);
-            if ($isPassValid) {
-                $this->security->login($user);
-            }
+            // $password = $user->getPassword();
+            // //check where password is valid
+            // $isPassValid = $this->passwordUtil->isPasswordValid($userFromBD, $password);
+            // if ($isPassValid) {
+            //     $this->security->login($user);
+            // }
         }
 
         return $this->renderMain();

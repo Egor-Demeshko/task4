@@ -19,7 +19,11 @@ let lock = false;
     for (let key of Object.keys(config)) {
         let el = document.querySelector(`[data-form=${key}]`);
         if (!el || !el instanceof HTMLElement) return;
-        controllers[key] = new FormController(el);
+
+        if (key !== "login") {
+            controllers[key] = new FormController(el);
+        }
+
         elements[key] = el;
         el.querySelector("[data-goto]").addEventListener(
             "click",

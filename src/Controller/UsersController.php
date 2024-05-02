@@ -11,6 +11,11 @@ class UsersController extends AbstractController
     #[Route('/users', name: 'users')]
     public function index(): Response
     {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $user = $this->getUser();
+        $name = $user->getName();
+
         return $this->render('users/index.html.twig', [
             'controller_name' => 'UsersController',
         ]);
