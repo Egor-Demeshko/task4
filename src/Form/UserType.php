@@ -25,33 +25,28 @@ class UserType extends AbstractType
     {
 
         $builder
-            ->add('email', EmailType::class, [
-                'required' => false,
-                ...self::STYLES
-            ])
+            /**/
             ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
                 $form = $event->getForm();
                 /** @var bool */
                 $isParent = (bool) $form?->getParent();
-
                 if ($isParent) {
-                    $form->add('password', RepeatedType::class, [
-                        'type' => PasswordType::class,
-                        'invalid_message' => 'The password fields must match.',
-                        'options' => [
-                            ...UserType::STYLES
-                        ],
-                        'required' => true,
-                        'first_options' => [
-                            'label' => 'Enter your password'
-                        ],
-                        'second_options' => ['label' => 'Repeat Password'],
-                    ]);
-                } else {
-                    $form->add('password', PasswordType::class, self::STYLES)
-                        ->add('submit', SubmitType::class, [
-                            'attr' => ['class' => 'btn btn-primary'],
-                            'label' => 'Login'
+
+                    $form->add('email', EmailType::class, [
+                        'required' => false,
+                        ...self::STYLES
+                    ])
+                        ->add('password', RepeatedType::class, [
+                            'type' => PasswordType::class,
+                            'invalid_message' => 'The password fields must match.',
+                            'options' => [
+                                ...UserType::STYLES
+                            ],
+                            'required' => true,
+                            'first_options' => [
+                                'label' => 'Enter your password'
+                            ],
+                            'second_options' => ['label' => 'Repeat Password'],
                         ]);
                 }
             })
