@@ -20,6 +20,10 @@ return [
         'path' => './assets/js/main/main.js',
         'entrypoint' => true
     ],
+    'users' => [
+        'path' => './assets/js/users/users.js',
+        'entrypoint' => true
+    ],
     '@hotwired/stimulus' => [
         'version' => '3.2.2',
     ],
