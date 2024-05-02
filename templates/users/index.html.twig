@@ -1,7 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello UsersController!{% endblock %}
+{% block title %}Users Controll
+{% endblock %}
+{% block javascripts %}
+	{% block importmap %}
+		{{ importmap('users') }}
+	{% endblock %}
+{% endblock %}
 
 {% block body %}
-
+	<div class="user_table__wrapper">
+		<twig:Controlls></twig:Controlls>
+	</div>
 {% endblock %}

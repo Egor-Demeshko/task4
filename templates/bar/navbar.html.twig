@@ -1,11 +1,13 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Navbar</a>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="#">Link</a>
-        </li>
-    </div>
-  </div>
+	<div class="container-fluid">
+		<a class="navbar-brand" href="#">Navbar</a>
+		<div class="d-flex gap-4">
+			<p class="m-0">Hello,
+				{% if name is defined %}
+					{{name}}
+				{% endif %}
+			</p>
+			<a href="/logout" class="d-block topbar__link">Logout</a>
+		</div>
+	</div>
 </nav>

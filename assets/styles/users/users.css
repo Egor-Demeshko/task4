@@ -1,0 +1,6 @@
+@import url("../components/controls.css");
+
+.user_table__wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+}

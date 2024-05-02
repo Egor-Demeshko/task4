@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\UserDetails;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -20,6 +21,21 @@ class UserDetailsRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, UserDetails::class);
     }
+
+
+    public function setLastLogginedAt(int $user_id, DateTime $time): void
+    {
+        $queryBuilder = $this->createQueryBuilder('ud')
+            ->update(UserDetails::class, 'ud')
+            ->set('ud.last_logined_at', ':last')
+            ->where('ud.user_id=:user_id')
+            ->setParameter('last', $time)
+            ->setParameter('user_id', $user_id);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->execute();
+    }
+
 
     //    /**
     //     * @return UserDetails[] Returns an array of UserDetails objects
