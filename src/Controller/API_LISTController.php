@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class API_LISTController extends AbstractController
 {
-    #[Route('/api/v1/users/list', name: '/api/v1/users/list')]
+    #[Route('/api/v1/users/list', name: '/api/v1/users/list', methods: ["GET"])]
     public function index(ApiUser $apiUser): JsonResponse
     {
         $status = false;
@@ -20,10 +20,6 @@ class API_LISTController extends AbstractController
         if ($data) {
             $status = true;
         }
-
-        //need to get all users data
-        //create service, it will trigger fetch all users data, and prepare it
-
 
         return $this->json([
             'status' => $status,
