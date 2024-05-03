@@ -1,7 +1,11 @@
 <script>
     import { onMount } from "svelte";
     import pickedElementsStore from "./stores/pickedElementsStore.js";
-    import { sendBlock, sendUNBlock } from "../scripts/usersApiFetcher.js";
+    import {
+        sendBlock,
+        sendUNBlock,
+        sendDelete,
+    } from "../scripts/usersApiFetcher.js";
 
     const events = {
         "send-block": goBlock,
@@ -30,6 +34,7 @@
     async function goDelete() {
         const ids = getPicked();
         if (!ids || ids.length === 0) return;
+        await sendDelete(ids);
     }
 
     function getPicked() {

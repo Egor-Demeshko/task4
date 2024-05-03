@@ -24,3 +24,16 @@ export async function sendData(root, options) {
     };
     return await fetch(root, options);
 }
+
+/**
+ * @param {string} root
+ * @param {*} options
+ * @returns {Promise<Response>}
+ */
+export async function deleteData(root, options) {
+    options = {
+        method: "DELETE",
+        ...options,
+    };
+    return await fetch(root, options);
+}

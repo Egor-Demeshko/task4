@@ -1,11 +1,12 @@
-import { getData, sendData } from "./fetcher.js";
+import { getData, sendData, deleteData } from "./fetcher.js";
 import { changeVisibleDataSimple } from "../lib/stores/changeVisibleDataSimple.js";
+import { deleteRowsStore } from "../lib/stores/deleteRowsStore.js";
 
 const API_ROUTE = "/api/v1/users";
 
 /**
  *
- * @returns {Promise <string | false>}
+ * @returns {Promise <{ data: any[] }>}
  */
 export async function getAllData() {
     const end = "/list";
@@ -61,6 +62,25 @@ export async function sendUNBlock(data) {
                 field: { value: "active", name: "status" },
                 ids: data,
             });
+        }
+    }
+}
+
+/**
+ *
+ * @param {number[]} data
+ */
+export async function sendDelete(data) {
+    const end = "/delete";
+
+    const result = await deleteData(API_ROUTE + end, {
+        body: JSON.stringify(data),
+    });
+    {
+        let json = await makeJson(result);
+
+        if (json.status) {
+            deleteRowsStore.set(data);
         }
     }
 }
