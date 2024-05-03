@@ -16,7 +16,6 @@ function createStore() {
      */
     function add(id) {
         pickedId[id] = true;
-        console.log(pickedId);
     }
 
     /**

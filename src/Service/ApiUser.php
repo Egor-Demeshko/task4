@@ -2,12 +2,16 @@
 
 namespace App\Service;
 
+use App\Repository\UserDetailsRepository;
 use App\Repository\UserRepository;
 
 class ApiUser
 {
-    public function __construct(private UserRepository $repository)
-    {
+    public function __construct(
+        private UserRepository $repository,
+        private UserDetailsRepository $userDetailsRepository,
+        private Cleaner $cleaner
+    ) {
     }
 
     public function getUsers()
@@ -45,5 +49,18 @@ class ApiUser
         }
 
         return $returnData;
+    }
+
+    public function clearIncoming(string $unparsedData)
+    {
+        $data = $this->cleaner->clearString($unparsedData);
+        $ids = json_decode($data);
+        $this->cleaner->insureIntInArray($ids);
+        return $ids;
+    }
+
+    public function setStatusBlocked(array $ids): bool
+    {
+        return $this->userDetailsRepository->setStatusBlock($ids);
     }
 }

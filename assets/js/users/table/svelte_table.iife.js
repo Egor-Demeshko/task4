@@ -357,50 +357,6 @@ var __publicField = (obj, key, value) => {
     };
     return await fetch(root, options);
   }
-  const API_ROUTE = "/api/v1/users";
-  async function getAllData() {
-    const end = "/list";
-    const result = await getData(API_ROUTE + end, {});
-    return await makeJson(result);
-  }
-  async function sendBlock(data) {
-    const end = "/block";
-    const result = await sendData(API_ROUTE + end, {
-      body: JSON.stringify(data)
-    });
-    return await makeJson(result);
-  }
-  async function makeJson(response) {
-    if (response.ok) {
-      return await response.json();
-    } else {
-      return false;
-    }
-  }
-  function createStore() {
-    const pickedId = {};
-    return {
-      add,
-      remove,
-      getPicked
-    };
-    function add(id) {
-      pickedId[id] = true;
-      console.log(pickedId);
-    }
-    function remove(id) {
-      if (pickedId[id])
-        delete pickedId[id];
-    }
-    function getPicked() {
-      const arr = [];
-      for (let key of Object.keys(pickedId)) {
-        arr.push(parseInt(key));
-      }
-      return arr;
-    }
-  }
-  const pickedElementsStore = createStore();
   const subscriber_queue = [];
   function writable(value, start = noop) {
     let stop;
@@ -443,6 +399,61 @@ var __publicField = (obj, key, value) => {
     }
     return { set, update: update2, subscribe };
   }
+  const changeVisibleDataSimple = writable({ field: null, ids: null });
+  const API_ROUTE = "/api/v1/users";
+  async function getAllData() {
+    const end = "/list";
+    const result = await getData(API_ROUTE + end, {});
+    return await makeJson(result);
+  }
+  async function sendBlock(data) {
+    const end = "/block";
+    const result = await sendData(API_ROUTE + end, {
+      body: JSON.stringify(data)
+    });
+    {
+      let json = await makeJson(result);
+      if (json.redirect) {
+        window.location.href = "/";
+      }
+      if (json.status) {
+        changeVisibleDataSimple.set({
+          field: { value: "block", name: "status" },
+          ids: data
+        });
+      }
+    }
+  }
+  async function makeJson(response) {
+    if (response.ok) {
+      return await response.json();
+    } else {
+      return false;
+    }
+  }
+  function createStore() {
+    const pickedId = {};
+    return {
+      add,
+      remove,
+      getPicked
+    };
+    function add(id) {
+      pickedId[id] = true;
+    }
+    function remove(id) {
+      if (pickedId[id])
+        delete pickedId[id];
+    }
+    function getPicked() {
+      const arr = [];
+      for (let key of Object.keys(pickedId)) {
+        arr.push(parseInt(key));
+      }
+      return arr;
+    }
+  }
+  const pickedElementsStore = createStore();
   function create_fragment$3(ctx) {
     let input_1;
     let mounted;
@@ -699,13 +710,19 @@ var __publicField = (obj, key, value) => {
     });
     async function goBlock() {
       const ids = getPicked();
+      if (!ids || ids.length === 0)
+        return;
       await sendBlock(ids);
     }
     function goUnblock() {
-      getPicked();
+      const ids = getPicked();
+      if (!ids || ids.length === 0)
+        return;
     }
     function goDelete() {
-      getPicked();
+      const ids = getPicked();
+      if (!ids || ids.length === 0)
+        return;
     }
     function getPicked() {
       return pickedElementsStore.getPicked();
@@ -806,10 +823,8 @@ var __publicField = (obj, key, value) => {
   function create_each_block(ctx) {
     let tablerow;
     let current;
-    tablerow = new TableRow({ props: { data: (
-      /*user*/
-      ctx[2]
-    ) } });
+    tablerow = new TableRow({ props: { data: { .../*user*/
+    ctx[2] } } });
     return {
       c() {
         create_component(tablerow.$$.fragment);
@@ -822,8 +837,8 @@ var __publicField = (obj, key, value) => {
         const tablerow_changes = {};
         if (dirty & /*data*/
         1)
-          tablerow_changes.data = /*user*/
-          ctx2[2];
+          tablerow_changes.data = { .../*user*/
+          ctx2[2] };
         tablerow.$set(tablerow_changes);
       },
       i(local) {
@@ -838,6 +853,69 @@ var __publicField = (obj, key, value) => {
       },
       d(detaching) {
         destroy_component(tablerow, detaching);
+      }
+    };
+  }
+  function create_key_block(ctx) {
+    let if_block_anchor;
+    let current;
+    let if_block = (
+      /*data*/
+      ctx[0] && create_if_block(ctx)
+    );
+    return {
+      c() {
+        if (if_block)
+          if_block.c();
+        if_block_anchor = empty();
+      },
+      m(target, anchor) {
+        if (if_block)
+          if_block.m(target, anchor);
+        insert(target, if_block_anchor, anchor);
+        current = true;
+      },
+      p(ctx2, dirty) {
+        if (
+          /*data*/
+          ctx2[0]
+        ) {
+          if (if_block) {
+            if_block.p(ctx2, dirty);
+            if (dirty & /*data*/
+            1) {
+              transition_in(if_block, 1);
+            }
+          } else {
+            if_block = create_if_block(ctx2);
+            if_block.c();
+            transition_in(if_block, 1);
+            if_block.m(if_block_anchor.parentNode, if_block_anchor);
+          }
+        } else if (if_block) {
+          group_outros();
+          transition_out(if_block, 1, 1, () => {
+            if_block = null;
+          });
+          check_outros();
+        }
+      },
+      i(local) {
+        if (current)
+          return;
+        transition_in(if_block);
+        current = true;
+      },
+      o(local) {
+        transition_out(if_block);
+        current = false;
+      },
+      d(detaching) {
+        if (detaching) {
+          detach(if_block_anchor);
+        }
+        if (if_block)
+          if_block.d(detaching);
       }
     };
   }
@@ -860,14 +938,15 @@ var __publicField = (obj, key, value) => {
     let t14;
     let th4;
     let t16;
+    let previous_key = (
+      /*data*/
+      ctx[0]
+    );
     let t17;
     let apicontroller;
     let current;
     globalcheckbox = new GlobalCheckBox({});
-    let if_block = (
-      /*data*/
-      ctx[0] && create_if_block(ctx)
-    );
+    let key_block = create_key_block(ctx);
     apicontroller = new ButtonsApiController({});
     return {
       c() {
@@ -895,8 +974,7 @@ var __publicField = (obj, key, value) => {
         th4 = element("th");
         th4.textContent = "Registrated At";
         t16 = space();
-        if (if_block)
-          if_block.c();
+        key_block.c();
         t17 = space();
         create_component(apicontroller.$$.fragment);
         attr(td, "class", "d-flex svelte-vxomek");
@@ -933,48 +1011,37 @@ var __publicField = (obj, key, value) => {
         append(tr, t14);
         append(tr, th4);
         append(table2, t16);
-        if (if_block)
-          if_block.m(table2, null);
+        key_block.m(table2, null);
         insert(target, t17, anchor);
         mount_component(apicontroller, target, anchor);
         current = true;
       },
       p(ctx2, [dirty]) {
-        if (
-          /*data*/
-          ctx2[0]
-        ) {
-          if (if_block) {
-            if_block.p(ctx2, dirty);
-            if (dirty & /*data*/
-            1) {
-              transition_in(if_block, 1);
-            }
-          } else {
-            if_block = create_if_block(ctx2);
-            if_block.c();
-            transition_in(if_block, 1);
-            if_block.m(table2, null);
-          }
-        } else if (if_block) {
+        if (dirty & /*data*/
+        1 && safe_not_equal(previous_key, previous_key = /*data*/
+        ctx2[0])) {
           group_outros();
-          transition_out(if_block, 1, 1, () => {
-            if_block = null;
-          });
+          transition_out(key_block, 1, 1, noop);
           check_outros();
+          key_block = create_key_block(ctx2);
+          key_block.c();
+          transition_in(key_block, 1);
+          key_block.m(table2, null);
+        } else {
+          key_block.p(ctx2, dirty);
         }
       },
       i(local) {
         if (current)
           return;
         transition_in(globalcheckbox.$$.fragment, local);
-        transition_in(if_block);
+        transition_in(key_block);
         transition_in(apicontroller.$$.fragment, local);
         current = true;
       },
       o(local) {
         transition_out(globalcheckbox.$$.fragment, local);
-        transition_out(if_block);
+        transition_out(key_block);
         transition_out(apicontroller.$$.fragment, local);
         current = false;
       },
@@ -984,8 +1051,7 @@ var __publicField = (obj, key, value) => {
           detach(t17);
         }
         destroy_component(globalcheckbox);
-        if (if_block)
-          if_block.d();
+        key_block.d(detaching);
         destroy_component(apicontroller, detaching);
       }
     };
@@ -995,9 +1061,25 @@ var __publicField = (obj, key, value) => {
     onMount(() => {
       getUsers();
     });
+    changeVisibleDataSimple.subscribe((changeData) => {
+      let { field, ids } = changeData;
+      if (!field || !ids || ids.length === 0)
+        return;
+      let { value, name } = field;
+      if (!value || !name)
+        return;
+      let idSet = new Set(ids);
+      data.forEach((obj) => {
+        if (idSet.has(obj.id)) {
+          obj[name] = value;
+        }
+      });
+      $$invalidate(0, data);
+    });
     async function getUsers() {
       $$invalidate(0, data = await getAllData());
       $$invalidate(0, data = data.data);
+      console.log(data);
     }
     return [data];
   }

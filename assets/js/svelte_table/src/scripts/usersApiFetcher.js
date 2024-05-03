@@ -1,4 +1,5 @@
 import { getData, sendData } from "./fetcher.js";
+import { changeVisibleDataSimple } from "../lib/stores/changeVisibleDataSimple.js";
 
 const API_ROUTE = "/api/v1/users";
 
@@ -27,7 +28,19 @@ export async function sendBlock(data) {
     const result = await sendData(API_ROUTE + end, {
         body: JSON.stringify(data),
     });
-    return await makeJson(result);
+    {
+        let json = await makeJson(result);
+        if (json.redirect) {
+            window.location.href = "/";
+        }
+
+        if (json.status) {
+            changeVisibleDataSimple.set({
+                field: { value: "block", name: "status" },
+                ids: data,
+            });
+        }
+    }
 }
 
 /**
