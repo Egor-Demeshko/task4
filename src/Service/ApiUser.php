@@ -63,4 +63,9 @@ class ApiUser
     {
         return $this->userDetailsRepository->setStatusBlock($ids);
     }
+
+    public function setStatusUnBlocked(array $ids): bool
+    {
+        return $this->userDetailsRepository->setStatusUnBlock($ids);
+    }
 }

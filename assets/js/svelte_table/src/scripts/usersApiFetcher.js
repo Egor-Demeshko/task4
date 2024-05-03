@@ -45,6 +45,28 @@ export async function sendBlock(data) {
 
 /**
  *
+ * @param {number[]} data
+ */
+export async function sendUNBlock(data) {
+    const end = "/unblock";
+
+    const result = await sendData(API_ROUTE + end, {
+        body: JSON.stringify(data),
+    });
+    {
+        let json = await makeJson(result);
+
+        if (json.status) {
+            changeVisibleDataSimple.set({
+                field: { value: "active", name: "status" },
+                ids: data,
+            });
+        }
+    }
+}
+
+/**
+ *
  * @param {Response} response
  * @returns
  */

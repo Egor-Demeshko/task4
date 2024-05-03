@@ -424,6 +424,21 @@ var __publicField = (obj, key, value) => {
       }
     }
   }
+  async function sendUNBlock(data) {
+    const end = "/unblock";
+    const result = await sendData(API_ROUTE + end, {
+      body: JSON.stringify(data)
+    });
+    {
+      let json = await makeJson(result);
+      if (json.status) {
+        changeVisibleDataSimple.set({
+          field: { value: "active", name: "status" },
+          ids: data
+        });
+      }
+    }
+  }
   async function makeJson(response) {
     if (response.ok) {
       return await response.json();
@@ -564,7 +579,7 @@ var __publicField = (obj, key, value) => {
       }
     }
     onMount(() => {
-      globalCheckState.subscribe((state) => {
+      const unsubscribe = globalCheckState.subscribe((state) => {
         if (state) {
           $$invalidate(0, input.checked = true, input);
           pickedElementsStore.add(id);
@@ -573,6 +588,9 @@ var __publicField = (obj, key, value) => {
           pickedElementsStore.remove(id);
         }
       });
+      return () => {
+        unsubscribe();
+      };
     });
     function input_1_binding($$value) {
       binding_callbacks[$$value ? "unshift" : "push"](() => {
@@ -714,12 +732,13 @@ var __publicField = (obj, key, value) => {
         return;
       await sendBlock(ids);
     }
-    function goUnblock() {
+    async function goUnblock() {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
+      await sendUNBlock(ids);
     }
-    function goDelete() {
+    async function goDelete() {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
