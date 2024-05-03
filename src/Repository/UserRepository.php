@@ -53,6 +53,17 @@ class UserRepository extends ServiceEntityRepository
         return $result;
     }
 
+    public function getAllUsers(): array
+    {
+        $query = $this->createQueryBuilder('u')
+            ->select('u', 'ud')
+            ->leftJoin('u.user_details', 'ud')
+            ->getQuery();
+        $result = $query->getResult();
+
+        return $result;
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */
