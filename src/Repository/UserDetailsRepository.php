@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\UserDetails;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query as ORMQuery;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -46,13 +48,7 @@ class UserDetailsRepository extends ServiceEntityRepository
             ->setParameter('block', 'block');
 
         $query = $queryBuilder->getQuery();
-        $result = $query->execute();
-
-        if ($result === 0) {
-            return false;
-        }
-
-        return true;
+        return $this->makeRequest($query);
     }
 
     public function setStatusUnBlock(array $ids)
@@ -65,6 +61,27 @@ class UserDetailsRepository extends ServiceEntityRepository
             ->setParameter('active', 'active');
 
         $query = $queryBuilder->getQuery();
+        return $this->makeRequest($query);
+    }
+
+    public function delete(array $ids, EntityManagerInterface $em): bool
+    {
+        $queryBuilder = $em->createQueryBuilder('ud')
+            ->delete(UserDetails::class, 'ud')
+            ->where('ud.user_id in (:ids)')
+            ->setParameter('ids', $ids);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+        if ($result === 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private function makeRequest(ORMQuery $query): bool
+    {
         $result = $query->execute();
 
         if ($result === 0) {

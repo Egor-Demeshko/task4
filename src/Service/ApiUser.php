@@ -4,13 +4,17 @@ namespace App\Service;
 
 use App\Repository\UserDetailsRepository;
 use App\Repository\UserRepository;
+use App\Service\Cleaner;
+use Doctrine\ORM\EntityManagerInterface;
+use Throwable;
 
 class ApiUser
 {
     public function __construct(
         private UserRepository $repository,
         private UserDetailsRepository $userDetailsRepository,
-        private Cleaner $cleaner
+        private Cleaner $cleaner,
+        private EntityManagerInterface $em
     ) {
     }
 
@@ -67,5 +71,24 @@ class ApiUser
     public function setStatusUnBlocked(array $ids): bool
     {
         return $this->userDetailsRepository->setStatusUnBlock($ids);
+    }
+
+    public function delete(array $ids): bool
+    {
+        $this->em->beginTransaction();
+        try {
+            $result1 = $this->userDetailsRepository->delete($ids, $this->em);
+            $result2 = $this->repository->delete($ids, $this->em);
+        } catch (Throwable $e) {
+            $this->em->rollback();
+            return false;
+        }
+
+        if ($result1 && $result2) {
+            return true;
+        } else {
+            $this->em->rollback();
+            return false;
+        }
     }
 }

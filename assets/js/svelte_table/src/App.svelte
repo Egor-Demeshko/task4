@@ -5,11 +5,12 @@
     import GlobalCheckBox from "./lib/GlobalCheckBox.svelte";
     import ApiController from "./lib/ButtonsApiController.svelte";
     import { changeVisibleDataSimple } from "./lib/stores/changeVisibleDataSimple.js";
+    import { deleteRowsStore } from "./lib/stores/deleteRowsStore.js";
 
     /**
      * @var {[]|null}
      */
-    let data = null!;
+    let data = null;
 
     onMount(() => {
         getUsers();
@@ -31,10 +32,21 @@
         data = data;
     });
 
+    deleteRowsStore.subscribe((ids) => {
+        if (!ids || ids.length === 0) return;
+        let idsSet = new Set(ids);
+
+        data = data.filter((obj) => {
+            if (idsSet.has(obj.id)) {
+                return false;
+            }
+            return true;
+        });
+    });
+
     async function getUsers() {
         data = await getAllData();
         data = data.data;
-        console.log(data);
     }
 </script>
 

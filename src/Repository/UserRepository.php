@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -62,6 +64,22 @@ class UserRepository extends ServiceEntityRepository
         $result = $query->getResult();
 
         return $result;
+    }
+
+    public function delete(array $ids, EntityManagerInterface $em)
+    {
+        $queryBuilder = $em->createQueryBuilder('u')
+            ->delete(User::class, 'u')
+            ->where('u.id in (:ids)')
+            ->setParameter('ids', $ids);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+        if ($result === 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     //    /**

@@ -357,6 +357,13 @@ var __publicField = (obj, key, value) => {
     };
     return await fetch(root, options);
   }
+  async function deleteData(root, options) {
+    options = {
+      method: "DELETE",
+      ...options
+    };
+    return await fetch(root, options);
+  }
   const subscriber_queue = [];
   function writable(value, start = noop) {
     let stop;
@@ -400,6 +407,7 @@ var __publicField = (obj, key, value) => {
     return { set, update: update2, subscribe };
   }
   const changeVisibleDataSimple = writable({ field: null, ids: null });
+  const deleteRowsStore = writable([]);
   const API_ROUTE = "/api/v1/users";
   async function getAllData() {
     const end = "/list";
@@ -436,6 +444,18 @@ var __publicField = (obj, key, value) => {
           field: { value: "active", name: "status" },
           ids: data
         });
+      }
+    }
+  }
+  async function sendDelete(data) {
+    const end = "/delete";
+    const result = await deleteData(API_ROUTE + end, {
+      body: JSON.stringify(data)
+    });
+    {
+      let json = await makeJson(result);
+      if (json.status) {
+        deleteRowsStore.set(data);
       }
     }
   }
@@ -742,6 +762,7 @@ var __publicField = (obj, key, value) => {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
+      await sendDelete(ids);
     }
     function getPicked() {
       return pickedElementsStore.getPicked();
@@ -1095,10 +1116,20 @@ var __publicField = (obj, key, value) => {
       });
       $$invalidate(0, data);
     });
+    deleteRowsStore.subscribe((ids) => {
+      if (!ids || ids.length === 0)
+        return;
+      let idsSet = new Set(ids);
+      $$invalidate(0, data = data.filter((obj) => {
+        if (idsSet.has(obj.id)) {
+          return false;
+        }
+        return true;
+      }));
+    });
     async function getUsers() {
       $$invalidate(0, data = await getAllData());
       $$invalidate(0, data = data.data);
-      console.log(data);
     }
     return [data];
   }
