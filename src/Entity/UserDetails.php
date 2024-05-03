@@ -102,12 +102,12 @@ class UserDetails
         return $this;
     }
 
-    public function getUserId(): ?User
+    public function getUserId(): ?int
     {
         return $this->user_id;
     }
 
-    public function setUserId(User $user_id): static
+    public function setUserId(int $user_id): static
     {
         $this->user_id = $user_id;
 
