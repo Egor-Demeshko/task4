@@ -4,6 +4,7 @@
     import TableRow from "./lib/TableRow.svelte";
     import GlobalCheckBox from "./lib/GlobalCheckBox.svelte";
     import ApiController from "./lib/ButtonsApiController.svelte";
+    import { changeVisibleDataSimple } from "./lib/stores/changeVisibleDataSimple.js";
 
     /**
      * @var {[]|null}
@@ -14,9 +15,26 @@
         getUsers();
     });
 
+    changeVisibleDataSimple.subscribe((changeData) => {
+        let { field, ids } = changeData;
+        if (!field || !ids || ids.length === 0) return;
+        let { value, name } = field;
+        if (!value || !name) return;
+        let idSet = new Set(ids);
+
+        data.forEach((obj) => {
+            if (idSet.has(obj.id)) {
+                obj[name] = value;
+            }
+        });
+
+        data = data;
+    });
+
     async function getUsers() {
         data = await getAllData();
         data = data.data;
+        console.log(data);
     }
 </script>
 
@@ -40,12 +58,13 @@
             <th scope="col">Status</th>
             <th scope="col">Registrated At</th>
         </tr>
-
-        {#if data}
-            {#each data as user}
-                <TableRow data={user} />
-            {/each}
-        {/if}
+        {#key data}
+            {#if data}
+                {#each data as user}
+                    <TableRow data={{ ...user }} />
+                {/each}
+            {/if}
+        {/key}
     </table>
 </div>
 <ApiController />

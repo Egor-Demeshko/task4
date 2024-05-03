@@ -36,6 +36,25 @@ class UserDetailsRepository extends ServiceEntityRepository
         $result = $query->execute();
     }
 
+    public function setStatusBlock(array $ids): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('ud')
+            ->update(UserDetails::class, 'ud')
+            ->set('ud.status', ':block')
+            ->where('ud.user_id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->setParameter('block', 'block');
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->execute();
+
+        if ($result === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     //    /**
     //     * @return UserDetails[] Returns an array of UserDetails objects
