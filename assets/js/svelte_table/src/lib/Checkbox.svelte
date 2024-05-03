@@ -20,7 +20,7 @@
     }
 
     onMount(() => {
-        globalCheckState.subscribe((state) => {
+        const unsubscribe = globalCheckState.subscribe((state) => {
             if (state) {
                 input.checked = true;
                 pickedElementsStore.add(id);
@@ -29,6 +29,10 @@
                 pickedElementsStore.remove(id);
             }
         });
+
+        return () => {
+            unsubscribe();
+        };
     });
 </script>
 
