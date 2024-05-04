@@ -6,6 +6,8 @@
     import ApiController from "./lib/ButtonsApiController.svelte";
     import { changeVisibleDataSimple } from "./lib/stores/changeVisibleDataSimple.js";
     import { deleteRowsStore } from "./lib/stores/deleteRowsStore.js";
+    import Loader from "./lib/Loader.svelte";
+    import { tableBlocked } from "./lib/stores/tableBlocked.js";
 
     /**
      * @var {[]|null}
@@ -77,6 +79,9 @@
                 {/each}
             {/if}
         {/key}
+        {#if !data || $tableBlocked}
+            <Loader is_modal={true} />
+        {/if}
     </table>
 </div>
 <ApiController />
@@ -90,6 +95,7 @@
     table {
         width: 100%;
         overflow-x: scroll;
+        position: relative;
     }
 
     th {

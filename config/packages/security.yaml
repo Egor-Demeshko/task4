@@ -17,7 +17,7 @@ security:
             provider: app_user_provider
             form_login:
                 login_path: main
-                check_path: main
+                check_path: login
                 default_target_path: users
             logout:
                 path: /logout

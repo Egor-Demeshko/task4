@@ -1,12 +1,12 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
 	<div class="container-fluid">
-		<a class="navbar-brand" href="#">Navbar</a>
+		<a class="navbar-brand" href="/">Company LOGO</a>
 		<div class="d-flex gap-4">
-			<p class="m-0">Hello,
-				{% if name is defined %}
+			{% if name is defined %}
+				<p class="m-0">Hello,
 					{{name}}
-				{% endif %}
-			</p>
+				</p>
+			{% endif %}
 			<a href="/logout" class="d-block topbar__link">Logout</a>
 		</div>
 	</div>

@@ -1,0 +1,13 @@
+
+
+    DocumentRoot /tasks.just-fit.by/public
+    DirectoryIndex /index.php
+
+    <Directory /tasks.just-fit.by/public>
+        AllowOverride None
+        Order Allow,Deny
+        Allow from All
+        FallbackResource /index.php
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
