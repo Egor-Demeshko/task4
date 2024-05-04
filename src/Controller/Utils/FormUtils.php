@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller\Utils;
 
-use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
-use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class FormUtils
 {
@@ -55,7 +51,6 @@ class FormUtils
             $result = $this->checkForm($this->forms[$formName], $formName);
         }
 
-
         return $result;
     }
 
@@ -67,19 +62,6 @@ class FormUtils
 
         if (isset($form)) {
             $this->forms[$formName]['form'] = $form->handleRequest($this->request);
-        }
-    }
-
-    public function redirect(AbstractController $controller): Response
-    {
-        foreach ($this->forms as $formData) {
-            if (isset($formData['canRedirect']) && $formData['canRedirect']) {
-                $param = [];
-                if ($formData['form']?->getName() === 'user_details') {
-                    $param['email'] = $this->orms['user_details']->getUser()->getEmail();
-                }
-                return $controller->goto($formData['redirectTo'], $param);
-            }
         }
     }
 

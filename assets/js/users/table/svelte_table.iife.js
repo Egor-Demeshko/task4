@@ -8,6 +8,7 @@ var __publicField = (obj, key, value) => {
 
   function noop() {
   }
+  const identity = (x) => x;
   function run(fn) {
     return fn();
   }
@@ -26,8 +27,75 @@ var __publicField = (obj, key, value) => {
   function is_empty(obj) {
     return Object.keys(obj).length === 0;
   }
+  function subscribe(store, ...callbacks) {
+    if (store == null) {
+      for (const callback of callbacks) {
+        callback(void 0);
+      }
+      return noop;
+    }
+    const unsub = store.subscribe(...callbacks);
+    return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+  }
+  function component_subscribe(component, store, callback) {
+    component.$$.on_destroy.push(subscribe(store, callback));
+  }
+  const is_client = typeof window !== "undefined";
+  let now = is_client ? () => window.performance.now() : () => Date.now();
+  let raf = is_client ? (cb) => requestAnimationFrame(cb) : noop;
+  const tasks = /* @__PURE__ */ new Set();
+  function run_tasks(now2) {
+    tasks.forEach((task) => {
+      if (!task.c(now2)) {
+        tasks.delete(task);
+        task.f();
+      }
+    });
+    if (tasks.size !== 0)
+      raf(run_tasks);
+  }
+  function loop(callback) {
+    let task;
+    if (tasks.size === 0)
+      raf(run_tasks);
+    return {
+      promise: new Promise((fulfill) => {
+        tasks.add(task = { c: callback, f: fulfill });
+      }),
+      abort() {
+        tasks.delete(task);
+      }
+    };
+  }
   function append(target, node) {
     target.appendChild(node);
+  }
+  function get_root_for_style(node) {
+    if (!node)
+      return document;
+    const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+    if (root && /** @type {ShadowRoot} */
+    root.host) {
+      return (
+        /** @type {ShadowRoot} */
+        root
+      );
+    }
+    return node.ownerDocument;
+  }
+  function append_empty_stylesheet(node) {
+    const style_element = element("style");
+    style_element.textContent = "/* empty */";
+    append_stylesheet(get_root_for_style(node), style_element);
+    return style_element.sheet;
+  }
+  function append_stylesheet(node, style) {
+    append(
+      /** @type {Document} */
+      node.head || node,
+      style
+    );
+    return style.sheet;
   }
   function insert(target, node, anchor) {
     target.insertBefore(node, anchor || null);
@@ -67,6 +135,74 @@ var __publicField = (obj, key, value) => {
   }
   function children(element2) {
     return Array.from(element2.childNodes);
+  }
+  function toggle_class(element2, name, toggle) {
+    element2.classList.toggle(name, !!toggle);
+  }
+  function custom_event(type, detail, { bubbles = false, cancelable = false } = {}) {
+    return new CustomEvent(type, { detail, bubbles, cancelable });
+  }
+  const managed_styles = /* @__PURE__ */ new Map();
+  let active = 0;
+  function hash(str) {
+    let hash2 = 5381;
+    let i = str.length;
+    while (i--)
+      hash2 = (hash2 << 5) - hash2 ^ str.charCodeAt(i);
+    return hash2 >>> 0;
+  }
+  function create_style_information(doc, node) {
+    const info = { stylesheet: append_empty_stylesheet(node), rules: {} };
+    managed_styles.set(doc, info);
+    return info;
+  }
+  function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
+    const step = 16.666 / duration;
+    let keyframes = "{\n";
+    for (let p = 0; p <= 1; p += step) {
+      const t = a + (b - a) * ease(p);
+      keyframes += p * 100 + `%{${fn(t, 1 - t)}}
+`;
+    }
+    const rule = keyframes + `100% {${fn(b, 1 - b)}}
+}`;
+    const name = `__svelte_${hash(rule)}_${uid}`;
+    const doc = get_root_for_style(node);
+    const { stylesheet, rules } = managed_styles.get(doc) || create_style_information(doc, node);
+    if (!rules[name]) {
+      rules[name] = true;
+      stylesheet.insertRule(`@keyframes ${name} ${rule}`, stylesheet.cssRules.length);
+    }
+    const animation = node.style.animation || "";
+    node.style.animation = `${animation ? `${animation}, ` : ""}${name} ${duration}ms linear ${delay}ms 1 both`;
+    active += 1;
+    return name;
+  }
+  function delete_rule(node, name) {
+    const previous = (node.style.animation || "").split(", ");
+    const next = previous.filter(
+      name ? (anim) => anim.indexOf(name) < 0 : (anim) => anim.indexOf("__svelte") === -1
+      // remove all Svelte animations
+    );
+    const deleted = previous.length - next.length;
+    if (deleted) {
+      node.style.animation = next.join(", ");
+      active -= deleted;
+      if (!active)
+        clear_rules();
+    }
+  }
+  function clear_rules() {
+    raf(() => {
+      if (active)
+        return;
+      managed_styles.forEach((info) => {
+        const { ownerNode } = info.stylesheet;
+        if (ownerNode)
+          detach(ownerNode);
+      });
+      managed_styles.clear();
+    });
   }
   let current_component;
   function set_current_component(component) {
@@ -153,6 +289,19 @@ var __publicField = (obj, key, value) => {
     targets.forEach((c) => c());
     render_callbacks = filtered;
   }
+  let promise;
+  function wait() {
+    if (!promise) {
+      promise = Promise.resolve();
+      promise.then(() => {
+        promise = null;
+      });
+    }
+    return promise;
+  }
+  function dispatch(node, direction, kind) {
+    node.dispatchEvent(custom_event(`${direction ? "intro" : "outro"}${kind}`));
+  }
   const outroing = /* @__PURE__ */ new Set();
   let outros;
   function group_outros() {
@@ -192,6 +341,132 @@ var __publicField = (obj, key, value) => {
     } else if (callback) {
       callback();
     }
+  }
+  const null_transition = { duration: 0 };
+  function create_bidirectional_transition(node, fn, params, intro) {
+    const options = { direction: "both" };
+    let config = fn(node, params, options);
+    let t = intro ? 0 : 1;
+    let running_program = null;
+    let pending_program = null;
+    let animation_name = null;
+    let original_inert_value;
+    function clear_animation() {
+      if (animation_name)
+        delete_rule(node, animation_name);
+    }
+    function init2(program, duration) {
+      const d = (
+        /** @type {Program['d']} */
+        program.b - t
+      );
+      duration *= Math.abs(d);
+      return {
+        a: t,
+        b: program.b,
+        d,
+        duration,
+        start: program.start,
+        end: program.start + duration,
+        group: program.group
+      };
+    }
+    function go(b) {
+      const {
+        delay = 0,
+        duration = 300,
+        easing = identity,
+        tick = noop,
+        css
+      } = config || null_transition;
+      const program = {
+        start: now() + delay,
+        b
+      };
+      if (!b) {
+        program.group = outros;
+        outros.r += 1;
+      }
+      if ("inert" in node) {
+        if (b) {
+          if (original_inert_value !== void 0) {
+            node.inert = original_inert_value;
+          }
+        } else {
+          original_inert_value = /** @type {HTMLElement} */
+          node.inert;
+          node.inert = true;
+        }
+      }
+      if (running_program || pending_program) {
+        pending_program = program;
+      } else {
+        if (css) {
+          clear_animation();
+          animation_name = create_rule(node, t, b, duration, delay, easing, css);
+        }
+        if (b)
+          tick(0, 1);
+        running_program = init2(program, duration);
+        add_render_callback(() => dispatch(node, b, "start"));
+        loop((now2) => {
+          if (pending_program && now2 > pending_program.start) {
+            running_program = init2(pending_program, duration);
+            pending_program = null;
+            dispatch(node, running_program.b, "start");
+            if (css) {
+              clear_animation();
+              animation_name = create_rule(
+                node,
+                t,
+                running_program.b,
+                running_program.duration,
+                0,
+                easing,
+                config.css
+              );
+            }
+          }
+          if (running_program) {
+            if (now2 >= running_program.end) {
+              tick(t = running_program.b, 1 - t);
+              dispatch(node, running_program.b, "end");
+              if (!pending_program) {
+                if (running_program.b) {
+                  clear_animation();
+                } else {
+                  if (!--running_program.group.r)
+                    run_all(running_program.group.c);
+                }
+              }
+              running_program = null;
+            } else if (now2 >= running_program.start) {
+              const p = now2 - running_program.start;
+              t = running_program.a + running_program.d * easing(p / running_program.duration);
+              tick(t, 1 - t);
+            }
+          }
+          return !!(running_program || pending_program);
+        });
+      }
+    }
+    return {
+      run(b) {
+        if (is_function(config)) {
+          wait().then(() => {
+            const opts = { direction: b ? "in" : "out" };
+            config = config(opts);
+            go(b);
+          });
+        } else {
+          go(b);
+        }
+      },
+      end() {
+        clear_animation();
+        running_program = pending_program = null;
+      }
+    };
   }
   function ensure_array_like(array_like_or_iterator) {
     return (array_like_or_iterator == null ? void 0 : array_like_or_iterator.length) !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
@@ -389,7 +664,7 @@ var __publicField = (obj, key, value) => {
     function update2(fn) {
       set(fn(value));
     }
-    function subscribe(run2, invalidate = noop) {
+    function subscribe2(run2, invalidate = noop) {
       const subscriber = [run2, invalidate];
       subscribers.add(subscriber);
       if (subscribers.size === 1) {
@@ -404,7 +679,7 @@ var __publicField = (obj, key, value) => {
         }
       };
     }
-    return { set, update: update2, subscribe };
+    return { set, update: update2, subscribe: subscribe2 };
   }
   const changeVisibleDataSimple = writable({ field: null, ids: null });
   const deleteRowsStore = writable([]);
@@ -489,7 +764,7 @@ var __publicField = (obj, key, value) => {
     }
   }
   const pickedElementsStore = createStore();
-  function create_fragment$3(ctx) {
+  function create_fragment$4(ctx) {
     let input_1;
     let mounted;
     let dispose;
@@ -526,7 +801,7 @@ var __publicField = (obj, key, value) => {
     };
   }
   const globalCheckState = writable(false);
-  function instance$4($$self, $$props, $$invalidate) {
+  function instance$5($$self, $$props, $$invalidate) {
     let input;
     function clickHandler() {
       if (input.checked) {
@@ -546,10 +821,10 @@ var __publicField = (obj, key, value) => {
   class GlobalCheckBox extends SvelteComponent {
     constructor(options) {
       super();
-      init(this, options, instance$4, create_fragment$3, safe_not_equal, {});
+      init(this, options, instance$5, create_fragment$4, safe_not_equal, {});
     }
   }
-  function create_fragment$2(ctx) {
+  function create_fragment$3(ctx) {
     let input_1;
     let mounted;
     let dispose;
@@ -587,7 +862,7 @@ var __publicField = (obj, key, value) => {
     };
   }
   const SIMPLE_INPUT = "simple";
-  function instance$3($$self, $$props, $$invalidate) {
+  function instance$4($$self, $$props, $$invalidate) {
     let { id = 0 } = $$props;
     let input;
     function clickHandler(e) {
@@ -627,10 +902,10 @@ var __publicField = (obj, key, value) => {
   class Checkbox extends SvelteComponent {
     constructor(options) {
       super();
-      init(this, options, instance$3, create_fragment$2, safe_not_equal, { id: 2 });
+      init(this, options, instance$4, create_fragment$3, safe_not_equal, { id: 2 });
     }
   }
-  function create_fragment$1(ctx) {
+  function create_fragment$2(ctx) {
     let tr;
     let td0;
     let checkbox;
@@ -720,7 +995,7 @@ var __publicField = (obj, key, value) => {
       }
     };
   }
-  function instance$2($$self, $$props, $$invalidate) {
+  function instance$3($$self, $$props, $$invalidate) {
     let { data } = $$props;
     let { id, name, email, last_loggined_at, registrated_at, status } = data;
     $$self.$$set = ($$props2) => {
@@ -732,10 +1007,11 @@ var __publicField = (obj, key, value) => {
   class TableRow extends SvelteComponent {
     constructor(options) {
       super();
-      init(this, options, instance$2, create_fragment$1, safe_not_equal, { data: 6 });
+      init(this, options, instance$3, create_fragment$2, safe_not_equal, { data: 6 });
     }
   }
-  function instance$1($$self) {
+  const tableBlocked = writable(false);
+  function instance$2($$self) {
     const events = {
       "send-block": goBlock,
       "send-unblock": goUnblock,
@@ -750,37 +1026,136 @@ var __publicField = (obj, key, value) => {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
+      blockInterection();
       await sendBlock(ids);
+      unblockInterection();
     }
     async function goUnblock() {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
+      blockInterection();
       await sendUNBlock(ids);
+      unblockInterection();
     }
     async function goDelete() {
       const ids = getPicked();
       if (!ids || ids.length === 0)
         return;
+      blockInterection();
       await sendDelete(ids);
+      unblockInterection();
     }
     function getPicked() {
       return pickedElementsStore.getPicked();
+    }
+    function blockInterection() {
+      document.dispatchEvent(new CustomEvent("block_buttons"));
+      tableBlocked.set(true);
+    }
+    function unblockInterection() {
+      document.dispatchEvent(new CustomEvent("unblock_buttons"));
+      tableBlocked.set(false);
     }
     return [];
   }
   class ButtonsApiController extends SvelteComponent {
     constructor(options) {
       super();
-      init(this, options, instance$1, null, safe_not_equal, {});
+      init(this, options, instance$2, null, safe_not_equal, {});
+    }
+  }
+  function fade(node, { delay = 0, duration = 400, easing = identity } = {}) {
+    const o = +getComputedStyle(node).opacity;
+    return {
+      delay,
+      duration,
+      easing,
+      css: (t) => `opacity: ${t * o}`
+    };
+  }
+  function create_fragment$1(ctx) {
+    let div4;
+    let div4_transition;
+    let current;
+    return {
+      c() {
+        div4 = element("div");
+        div4.innerHTML = `<div class="loader svelte-fee0xk"><div class="loader__inner one svelte-fee0xk"></div> <div class="loader__inner two svelte-fee0xk"></div> <div class="loader__inner three svelte-fee0xk"></div></div>`;
+        attr(div4, "class", "loader_wr svelte-fee0xk");
+        toggle_class(
+          div4,
+          "is_modal",
+          /*is_modal*/
+          ctx[0]
+        );
+      },
+      m(target, anchor) {
+        insert(target, div4, anchor);
+        current = true;
+      },
+      p(ctx2, [dirty]) {
+        if (!current || dirty & /*is_modal*/
+        1) {
+          toggle_class(
+            div4,
+            "is_modal",
+            /*is_modal*/
+            ctx2[0]
+          );
+        }
+      },
+      i(local) {
+        if (current)
+          return;
+        if (local) {
+          add_render_callback(() => {
+            if (!current)
+              return;
+            if (!div4_transition)
+              div4_transition = create_bidirectional_transition(div4, fade, {}, true);
+            div4_transition.run(1);
+          });
+        }
+        current = true;
+      },
+      o(local) {
+        if (local) {
+          if (!div4_transition)
+            div4_transition = create_bidirectional_transition(div4, fade, {}, false);
+          div4_transition.run(0);
+        }
+        current = false;
+      },
+      d(detaching) {
+        if (detaching) {
+          detach(div4);
+        }
+        if (detaching && div4_transition)
+          div4_transition.end();
+      }
+    };
+  }
+  function instance$1($$self, $$props, $$invalidate) {
+    let { is_modal = false } = $$props;
+    $$self.$$set = ($$props2) => {
+      if ("is_modal" in $$props2)
+        $$invalidate(0, is_modal = $$props2.is_modal);
+    };
+    return [is_modal];
+  }
+  class Loader extends SvelteComponent {
+    constructor(options) {
+      super();
+      init(this, options, instance$1, create_fragment$1, safe_not_equal, { is_modal: 0 });
     }
   }
   function get_each_context(ctx, list, i) {
     const child_ctx = ctx.slice();
-    child_ctx[2] = list[i];
+    child_ctx[3] = list[i];
     return child_ctx;
   }
-  function create_if_block(ctx) {
+  function create_if_block_1(ctx) {
     let each_1_anchor;
     let current;
     let each_value = ensure_array_like(
@@ -864,7 +1239,7 @@ var __publicField = (obj, key, value) => {
     let tablerow;
     let current;
     tablerow = new TableRow({ props: { data: { .../*user*/
-    ctx[2] } } });
+    ctx[3] } } });
     return {
       c() {
         create_component(tablerow.$$.fragment);
@@ -878,7 +1253,7 @@ var __publicField = (obj, key, value) => {
         if (dirty & /*data*/
         1)
           tablerow_changes.data = { .../*user*/
-          ctx2[2] };
+          ctx2[3] };
         tablerow.$set(tablerow_changes);
       },
       i(local) {
@@ -901,7 +1276,7 @@ var __publicField = (obj, key, value) => {
     let current;
     let if_block = (
       /*data*/
-      ctx[0] && create_if_block(ctx)
+      ctx[0] && create_if_block_1(ctx)
     );
     return {
       c() {
@@ -927,7 +1302,7 @@ var __publicField = (obj, key, value) => {
               transition_in(if_block, 1);
             }
           } else {
-            if_block = create_if_block(ctx2);
+            if_block = create_if_block_1(ctx2);
             if_block.c();
             transition_in(if_block, 1);
             if_block.m(if_block_anchor.parentNode, if_block_anchor);
@@ -959,6 +1334,33 @@ var __publicField = (obj, key, value) => {
       }
     };
   }
+  function create_if_block(ctx) {
+    let loader;
+    let current;
+    loader = new Loader({ props: { is_modal: true } });
+    return {
+      c() {
+        create_component(loader.$$.fragment);
+      },
+      m(target, anchor) {
+        mount_component(loader, target, anchor);
+        current = true;
+      },
+      i(local) {
+        if (current)
+          return;
+        transition_in(loader.$$.fragment, local);
+        current = true;
+      },
+      o(local) {
+        transition_out(loader.$$.fragment, local);
+        current = false;
+      },
+      d(detaching) {
+        destroy_component(loader, detaching);
+      }
+    };
+  }
   function create_fragment(ctx) {
     let div;
     let table2;
@@ -983,17 +1385,21 @@ var __publicField = (obj, key, value) => {
       ctx[0]
     );
     let t17;
+    let t18;
     let apicontroller;
     let current;
     globalcheckbox = new GlobalCheckBox({});
     let key_block = create_key_block(ctx);
+    let if_block = (!/*data*/
+    ctx[0] || /*$tableBlocked*/
+    ctx[1]) && create_if_block();
     apicontroller = new ButtonsApiController({});
     return {
       c() {
         div = element("div");
         table2 = element("table");
         colgroup = element("colgroup");
-        colgroup.innerHTML = `<col span="1" class="column svelte-vxomek"/> <col span="1" class="column svelte-vxomek"/> <col span="1" class="column svelte-vxomek"/> <col span="1" class="column svelte-vxomek"/> <col span="1" class="column svelte-vxomek"/> <col span="1" class="column svelte-vxomek"/>`;
+        colgroup.innerHTML = `<col span="1" class="column svelte-173ew20"/> <col span="1" class="column svelte-173ew20"/> <col span="1" class="column svelte-173ew20"/> <col span="1" class="column svelte-173ew20"/> <col span="1" class="column svelte-173ew20"/> <col span="1" class="column svelte-173ew20"/>`;
         t5 = space();
         tr = element("tr");
         td = element("td");
@@ -1016,21 +1422,24 @@ var __publicField = (obj, key, value) => {
         t16 = space();
         key_block.c();
         t17 = space();
+        if (if_block)
+          if_block.c();
+        t18 = space();
         create_component(apicontroller.$$.fragment);
-        attr(td, "class", "d-flex svelte-vxomek");
+        attr(td, "class", "d-flex svelte-173ew20");
         attr(th0, "scope", "col");
-        attr(th0, "class", "svelte-vxomek");
+        attr(th0, "class", "svelte-173ew20");
         attr(th1, "scope", "col");
-        attr(th1, "class", "svelte-vxomek");
+        attr(th1, "class", "svelte-173ew20");
         attr(th2, "scope", "col");
-        attr(th2, "class", "svelte-vxomek");
+        attr(th2, "class", "svelte-173ew20");
         attr(th3, "scope", "col");
-        attr(th3, "class", "svelte-vxomek");
+        attr(th3, "class", "svelte-173ew20");
         attr(th4, "scope", "col");
-        attr(th4, "class", "svelte-vxomek");
-        attr(tr, "class", "table__header svelte-vxomek");
-        attr(table2, "class", "svelte-vxomek");
-        attr(div, "class", "table__wrapper svelte-vxomek");
+        attr(th4, "class", "svelte-173ew20");
+        attr(tr, "class", "table__header svelte-173ew20");
+        attr(table2, "class", "svelte-173ew20");
+        attr(div, "class", "table__wrapper svelte-173ew20");
       },
       m(target, anchor) {
         insert(target, div, anchor);
@@ -1052,7 +1461,10 @@ var __publicField = (obj, key, value) => {
         append(tr, th4);
         append(table2, t16);
         key_block.m(table2, null);
-        insert(target, t17, anchor);
+        append(table2, t17);
+        if (if_block)
+          if_block.m(table2, null);
+        insert(target, t18, anchor);
         mount_component(apicontroller, target, anchor);
         current = true;
       },
@@ -1066,9 +1478,30 @@ var __publicField = (obj, key, value) => {
           key_block = create_key_block(ctx2);
           key_block.c();
           transition_in(key_block, 1);
-          key_block.m(table2, null);
+          key_block.m(table2, t17);
         } else {
           key_block.p(ctx2, dirty);
+        }
+        if (!/*data*/
+        ctx2[0] || /*$tableBlocked*/
+        ctx2[1]) {
+          if (if_block) {
+            if (dirty & /*data, $tableBlocked*/
+            3) {
+              transition_in(if_block, 1);
+            }
+          } else {
+            if_block = create_if_block();
+            if_block.c();
+            transition_in(if_block, 1);
+            if_block.m(table2, null);
+          }
+        } else if (if_block) {
+          group_outros();
+          transition_out(if_block, 1, 1, () => {
+            if_block = null;
+          });
+          check_outros();
         }
       },
       i(local) {
@@ -1076,27 +1509,33 @@ var __publicField = (obj, key, value) => {
           return;
         transition_in(globalcheckbox.$$.fragment, local);
         transition_in(key_block);
+        transition_in(if_block);
         transition_in(apicontroller.$$.fragment, local);
         current = true;
       },
       o(local) {
         transition_out(globalcheckbox.$$.fragment, local);
         transition_out(key_block);
+        transition_out(if_block);
         transition_out(apicontroller.$$.fragment, local);
         current = false;
       },
       d(detaching) {
         if (detaching) {
           detach(div);
-          detach(t17);
+          detach(t18);
         }
         destroy_component(globalcheckbox);
         key_block.d(detaching);
+        if (if_block)
+          if_block.d();
         destroy_component(apicontroller, detaching);
       }
     };
   }
   function instance($$self, $$props, $$invalidate) {
+    let $tableBlocked;
+    component_subscribe($$self, tableBlocked, ($$value) => $$invalidate(1, $tableBlocked = $$value));
     let data = null;
     onMount(() => {
       getUsers();
@@ -1131,7 +1570,7 @@ var __publicField = (obj, key, value) => {
       $$invalidate(0, data = await getAllData());
       $$invalidate(0, data = data.data);
     }
-    return [data];
+    return [data, $tableBlocked];
   }
   class App extends SvelteComponent {
     constructor(options) {

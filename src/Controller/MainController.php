@@ -116,7 +116,7 @@ class MainController extends AbstractController
 
                 $this->entityManager->persist($orm);
                 $this->entityManager->flush();
-                return $this->formsUtil->redirect($this);
+                return $this->redirectWithJson();
             } else {
                 $form = $this->formsUtil->getForms()[FormUtils::REGISTRATION]['form'];
 
@@ -138,22 +138,6 @@ class MainController extends AbstractController
                     'data' => $dataToSendBack
                 ]);
             }
-        } elseif ($this->sumbmittedRoute === FormUtils::LOGIN) {
-            //TODO create SESSION
-            $this->formsUtil->setDataFromRequest();
-
-            // $user = $this->formsUtil->getOrm(FormUtils::LOGIN);
-
-            // $email = $user->getEmail();
-
-            // $userFromBD = $this->userRep->getUserByEmail($email);
-
-            // $password = $user->getPassword();
-            // //check where password is valid
-            // $isPassValid = $this->passwordUtil->isPasswordValid($userFromBD, $password);
-            // if ($isPassValid) {
-            //     $this->security->login($user);
-            // }
         }
 
         return $this->renderMain();
@@ -164,13 +148,27 @@ class MainController extends AbstractController
         return $this->createForm($className, $orm);
     }
 
-    public function goto(string $route, array $params = []): Response
-    {
-        return $this->redirectToRoute($route, $params);
-    }
-
     public function getRequest()
     {
         return $this->request;
+    }
+
+    private function redirectWithJson()
+    {
+        $forms = $this->formsUtil->getForms();
+        $orms = $this->formsUtil->getOrm('user_details');
+        foreach ($forms as $formData) {
+            if (isset($formData['canRedirect']) && $formData['canRedirect']) {
+                $param = [];
+                if ($formData['form']?->getName() === 'user_details') {
+                    $param['email'] = $orms->getUser()->getEmail();
+                }
+                return $this->json([
+                    'status' => true,
+                    'redirect' => $formData['redirectTo'],
+                    'params' => $param
+                ]);
+            }
+        }
     }
 }

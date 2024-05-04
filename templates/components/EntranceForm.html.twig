@@ -2,22 +2,26 @@
 	<div class="p-4 ps-4 rounded-2 bg-info entrance_form  d-flex flex-column">
 		<h3 class="m-0">{{title}}</h3>
 		{% if type == 'login' %}
-			{{ form_start(user, {'attr': {'class': 'form_wrapper'}}) }}
+			{{ form_start(user, {'attr': {'class': 'form_wrapper', 'action': 'login'}}) }}
 			{{ form_errors(user) }}
 			<div class="flex-column d-flex gap-3 mt-3">
-
-				<div class="form__line">
-					<label for="username" class="form__label">Email:</label>
-					<input type="text" id="username" name="_username" class="form-control">
-				</div>
-				<div class="form__line">
-					<label for="password" class="form__label">Password:</label>
-					<input type="password" id="password" name="_password" class="form-control">
-				</div>
-				<div class="form__line">
-					<button class="btn btn-primary" type="submit">Login</button>
-				</div>
-
+				{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+					<div class="form__line">
+						Hello, you are authorized but you are blocked.
+					</div>
+				{% else %}
+					<div class="form__line">
+						<label for="username" class="form__label">Email:</label>
+						<input type="text" id="username" name="_username" class="form-control">
+					</div>
+					<div class="form__line">
+						<label for="password" class="form__label">Password:</label>
+						<input type="password" id="password" name="_password" class="form-control">
+					</div>
+					<div class="form__line">
+						<button class="btn btn-primary" type="submit">Login</button>
+					</div>
+				{% endif %}
 			</div>
 			{{ form_end(user) }}
 			<div class="d-flex align-items-center justify-content-end mt-3">

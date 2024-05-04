@@ -18,24 +18,43 @@ export default class FormController {
     }
 
     async #submitHandler(e) {
+        e.stopPropagation();
         e.preventDefault();
+        let submitRoute = "";
 
-        let response = await fetch("/", {
+        if (this.#form.getAttribute("action") === "login") {
+            submitRoute = "login";
+        } else {
+            submitRoute = "/";
+        }
+
+        let response = await fetch(submitRoute, {
             method: "POST",
             body: new FormData(this.#form),
         });
-        if (response.ok) {
-            let errorObj = await response.json();
-            if (errorObj.status === STATUS_FALSE) {
-                this.#processError(errorObj?.data);
+
+        let errorObj = await response.json();
+        if (errorObj.status === STATUS_FALSE) {
+            this.#processError(errorObj?.data);
+        } else if (errorObj.status && errorObj.redirect) {
+            let link = errorObj.redirect;
+            let params = errorObj.params;
+
+            if (params) {
+                link += "?";
+                for (let [key, value] of Object.entries(params)) {
+                    link += `${key}=${value}&`;
+                }
+
+                if (link[link.length - 1] === "&") link = link.slice(0, -1);
             }
+            window.location.href = link;
         }
     }
 
     #processError(data) {
         if (!data) return;
         const form = this.#form;
-
         /**
          * @param {{field: string, value: string, message: string}} errorData
          * @param {string} key - name of the field where error was encountered

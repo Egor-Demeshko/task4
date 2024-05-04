@@ -5,8 +5,8 @@ namespace App\EventListener;
 
 use App\Repository\UserDetailsRepository;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 
 #[AsEventListener]
@@ -27,5 +27,10 @@ final class LoginTime
             $user_id = $user->getId();
             $this->repository->setLastLogginedAt($user_id, $date);
         }
+
+        $event->setResponse(new JsonResponse([
+            'status' => true,
+            'redirect' => 'users'
+        ]));
     }
 }
